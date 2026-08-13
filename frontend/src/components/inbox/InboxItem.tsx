@@ -1,0 +1,4 @@
+import { motion } from "motion/react";
+import type { PartyRequest } from "../../types/api";
+import styles from "./InboxItem.module.css";
+export function InboxItem({request,own,decide}:{request:PartyRequest;own:boolean;decide:(id:number,accept:boolean)=>Promise<void>}){return <motion.article className={styles.item} layout><div className={styles.avatar}>{request.requester_name.slice(0,1)}</div><div className={styles.copy}><small>{own?"YOUR REQUEST":"JOIN REQUEST"}</small><strong>{own?`Request to ${request.party_title}`:`${request.requester_name} wants to join`}</strong><span>{request.party_title} · {request.status}</span>{request.status==="PENDING"&&!own&&<div><button onClick={()=>void decide(request.id,false)}>DECLINE</button><motion.button whileTap={{scale:.97}} onClick={()=>void decide(request.id,true)}>ACCEPT</motion.button></div>}</div></motion.article>}

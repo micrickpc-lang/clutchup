@@ -1,0 +1,4 @@
+import type { Party } from "../../types/api";
+import { Sheet } from "../ui/Sheet";
+import styles from "./PartyDetailSheet.module.css";
+export function PartyDetailSheet({party,close,join}:{party:Party;close:()=>void;join:(id:number)=>Promise<void>}){return <Sheet title={party.title} close={close}><div className={styles.detail}><span>{party.game.toUpperCase()} · {party.mode}</span><p>{party.description||"No additional details."}</p><div>{party.members.map(m=><article key={m.user_id}>{m.avatar_url?<img src={m.avatar_url} alt={m.display_name}/>:<i>{m.display_name.slice(0,1)}</i>}<b>{m.display_name}<small>{m.role}</small></b></article>)}</div><button className="primary-action" disabled={party.request_status==="PENDING"} onClick={()=>void join(party.id)}>{party.request_status==="PENDING"?"REQUESTED":"+ PARTY"}</button></div></Sheet>}

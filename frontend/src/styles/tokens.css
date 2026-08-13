@@ -1,0 +1,12 @@
+:root {
+  color-scheme: dark;
+  --bg-0: #030507; --bg-1: #07090d; --bg-2: #0b1017;
+  --surface-0: #0c1118; --surface-1: #111722; --surface-2: #151d29; --surface-3: #1b2532;
+  --border-subtle: rgba(255,255,255,.055); --border-default: rgba(255,255,255,.09); --border-strong: rgba(255,255,255,.14);
+  --text-primary: #f4f7fb; --text-secondary: #9aa8ba; --text-muted: #66758a;
+  --accent-blue: #3b82f6; --accent-blue-bright: #60a5fa; --accent-blue-deep: #2563eb;
+  --blue-soft: rgba(59,130,246,.10); --blue-glow: rgba(59,130,246,.16);
+  --faceit: #ff5500; --danger: #ef4444;
+  --font-display: "Arial Black", "Arial Narrow", Inter, sans-serif;
+  --font-body: Inter, system-ui, sans-serif; --font-tech: "IBM Plex Mono", ui-monospace, monospace;
+}

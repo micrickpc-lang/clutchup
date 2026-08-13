@@ -1,0 +1,4 @@
+import { GAME_CONFIG } from "../../config/games";
+import type { DiscoverFilters,GameId } from "../../types/api";
+import styles from "./PartyFilters.module.css";
+export function PartyFilters({game,value,onChange}:{game:GameId;value:DiscoverFilters;onChange:(value:DiscoverFilters)=>void}){const modes=GAME_CONFIG[game].modes;return <div className={styles.filters}><label><span>MODE</span><select value={value.mode||modes[0]} onChange={e=>onChange({...value,mode:e.target.value})}>{modes.map(x=><option key={x}>{x}</option>)}</select></label><label><span>SIZE</span><div>{[1,2,3,4].map(x=><button className={value.freeSlots===x?styles.active:""} onClick={()=>onChange({...value,freeSlots:x})} key={x}>+{x}</button>)}</div></label><label><span>VIBE</span><input type="range" value={value.vibe} onChange={e=>onChange({...value,vibe:+e.target.value})}/><small>{value.vibe<40?"CHILL":value.vibe>70?"TRYHARD":"BALANCED"}</small></label></div>}

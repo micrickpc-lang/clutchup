@@ -9,6 +9,7 @@ type State = {
   tab: AppTab; setTab: (value: AppTab) => void;
   user: UserProfile | null; game: GameId; setGame: (value: GameId) => void;
   gameProfile: GameProfile | null; parties: Party[]; mine: Party[]; requests: PartyRequest[];
+  partyFound: Party | null; clearPartyFound: () => void;
   filters: DiscoverFilters; setFilters: (value: DiscoverFilters) => void;
   loading: boolean; error: string; reload: () => Promise<void>;
   join: (id: number) => Promise<void>; create: (data: PartyCreate) => Promise<void>;
@@ -29,6 +30,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [filters, setFilters] = useState(defaults);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [partyFound, setPartyFound] = useState<Party | null>(null);
 
   const setGame = useCallback((value: GameId) => {
     localStorage.setItem("clutchup.game", value);
@@ -57,9 +59,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const create = useCallback(async (data: PartyCreate) => { if (!demo) await endpoints.createParty(data); setTab("parties"); await reload(); }, [demo, reload]);
   const decide = useCallback(async (id: number, accept: boolean) => {
     if (accept) await endpoints.acceptRequest(id); else await endpoints.rejectRequest(id);
+    if (accept) {
+      const request = requests.find(item => item.id === id);
+      if (request) setPartyFound(await endpoints.party(request.party_id));
+    }
     await reload();
-  }, [reload]);
-  const value = useMemo(() => ({ tab, setTab, user, game, setGame, gameProfile: profiles.find(profile => profile.game === game) || null, parties, mine, requests, filters, setFilters, loading, error, reload, join, create, decide }), [tab, user, game, setGame, profiles, parties, mine, requests, filters, loading, error, reload, join, create, decide]);
+  }, [reload, requests]);
+  const clearPartyFound = useCallback(() => setPartyFound(null), []);
+  const value = useMemo(() => ({ tab, setTab, user, game, setGame, gameProfile: profiles.find(profile => profile.game === game) || null, parties, mine, requests, partyFound, clearPartyFound, filters, setFilters, loading, error, reload, join, create, decide }), [tab, user, game, setGame, profiles, parties, mine, requests, partyFound, clearPartyFound, filters, loading, error, reload, join, create, decide]);
   return <Context.Provider value={value}>{children}</Context.Provider>;
 }
 export function useApp() { const value = useContext(Context); if (!value) throw new Error("AppProvider missing"); return value; }

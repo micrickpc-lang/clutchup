@@ -1,13 +1,10 @@
-import { useState } from "react";
-import type { CSSProperties } from "react";
+import { motion,useReducedMotion } from "motion/react";
+import { GAME_CONFIG,GAME_IDS } from "../../config/games";
+import { spring } from "../../motion/tokens";
+import type { GameId } from "../../types/api";
+import styles from "./GameSwitcher.module.css";
 
-const games = [
-  { id: "CS2", tone: "amber", mark: "CS", sub: "COUNTER-STRIKE 2" },
-  { id: "VALORANT", tone: "red", mark: "V", sub: "TACTICAL 5V5" },
-  { id: "STANDOFF 2", tone: "orange", mark: "S2", sub: "MOBILE FPS" },
-] as const;
-
-export function GameSwitcher() {
-  const [active, setActive] = useState(0);
-  return <section className="game-section"><div className="section-kicker"><span>01</span><div><strong>CHOOSE YOUR GAME</strong><small>SELECT YOUR SIGNAL</small></div></div><div className="game-deck">{games.map((game, index) => { const delta = index - active; return <button key={game.id} className={`game-card ${game.tone} ${delta === 0 ? "selected" : ""}`} style={{ "--offset": delta } as CSSProperties} onClick={() => setActive(index)} aria-pressed={delta === 0}><span className="game-no">0{index + 1}</span><b>{game.mark}</b><strong>{game.id}</strong><small>{game.sub}</small></button>; })}</div><div className="deck-dots">{games.map((g,i)=><button key={g.id} onClick={()=>setActive(i)} className={i===active?"active":""} aria-label={`Choose ${g.id}`} />)}</div></section>;
+export function GameSwitcher({value="cs2",onChange=()=>undefined}:{value?:GameId;onChange?:(value:GameId)=>void}){
+ const active=GAME_IDS.indexOf(value),reduced=useReducedMotion();
+ return <div className={styles.deck}>{GAME_IDS.map((id,index)=>{const offset=index-active,cfg=GAME_CONFIG[id];return <motion.button key={id} className={`${styles.card} ${styles[id]} ${id===value?styles.active:""}`} animate={reduced?{opacity:id===value?1:.58}:{x:offset*112,scale:id===value?1:.87,rotateY:offset*-15,z:id===value?58:-35,opacity:id===value?1:.58}} transition={spring.panel} whileTap={{scale:.98}} onClick={()=>onChange(id)} aria-pressed={id===value}><div className={styles.backdrop}/><div className={styles.art}><i/><i/><i/></div><div className={styles.copy}><small>{cfg.displayName}</small><strong>{cfg.shortName}</strong><span>{cfg.modes.join(" · ")}</span></div>{id===value&&<motion.em layoutId="game-edge"/>}</motion.button>})}</div>
 }
