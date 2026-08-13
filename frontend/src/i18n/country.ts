@@ -1,0 +1,1 @@
+export function countryFlag(value:string|null|undefined){const code=value?.trim().toUpperCase();return code&&/^[A-Z]{2}$/.test(code)?String.fromCodePoint(...[...code].map(char=>127397+char.charCodeAt(0))):"🌐"}

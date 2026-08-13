@@ -5,17 +5,17 @@
   grid-template-columns: auto auto;
   align-items: center;
   gap: 24px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
   background: radial-gradient(circle at 35% 50%, rgb(24 112 255 / 10%), transparent 28%), var(--surface-1);
-  color: var(--text-1);
+  color: var(--text-primary);
 }
 
 .root strong { font: 600 13px/1 var(--font-display); letter-spacing: .12em; }
-.root p { margin: 9px 0 0; color: var(--text-3); font-size: 13px; }
+.root p { margin: 9px 0 0; color: var(--text-muted); font-size: 13px; }
 .radar { position: relative; width: 74px; aspect-ratio: 1; overflow: hidden; border: 1px solid rgb(54 131 255 / 45%); border-radius: 50%; background: repeating-radial-gradient(circle, transparent 0 15px, rgb(54 131 255 / 17%) 16px); }
 .radar::after { content: ""; position: absolute; inset: 50% 0 auto; border-top: 1px solid rgb(54 131 255 / 20%); }
 .sweep { position: absolute; inset: 0 50% 50% 0; transform-origin: 100% 100%; background: conic-gradient(from 84deg at 100% 100%, transparent 0deg, rgb(54 131 255 / 45%) 22deg, transparent 52deg); }
-.dot { position: absolute; width: 4px; height: 4px; left: 49px; top: 23px; border-radius: 50%; background: var(--blue); box-shadow: 0 0 12px var(--blue); }
+.dot { position: absolute; width: 4px; height: 4px; left: 49px; top: 23px; border-radius: 50%; background: var(--accent-blue); box-shadow: 0 0 12px var(--blue-glow); }
 
 @media (max-width: 560px) { .root { grid-template-columns: 1fr; text-align: center; justify-items: center; } }
