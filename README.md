@@ -1,100 +1,53 @@
 # ClutchUp
 
-Production-oriented Telegram Mini App для поиска CS2-тиммейтов. Telegram `initData` проверяется только на backend, FACEIT подключается через OAuth 2.0 Authorization Code + PKCE, анкеты подбираются сервером по сохранённым фильтрам, а presence хранится в Redis с TTL.
+ClutchUp is a Telegram Mini App for finding open gaming parties: pick a game, set intent, request to join, and play.
 
-## Архитектура
+Supported games:
 
-- `backend/` — FastAPI, SQLAlchemy 2 async, PostgreSQL, Redis, Aiogram, pooled httpx client и Alembic.
-- `frontend/` — React 18, strict TypeScript, Vite, feature/page-based UI, Telegram SDK и Lucide icons.
-- `cloudflare-worker/` — закрытый allowlist proxy к необходимым FACEIT Data/Auth paths.
-- `docker-compose.yml` — PostgreSQL 16, Redis 7, API и Nginx frontend.
+- CS2
+- VALORANT
+- Standoff 2
 
-Frontend имеет пять разделов: поиск, матчи, профиль, статистика/фильтры и настройки. Отдельные экраны отвечают за карточку игрока, детали и новый взаимный матч.
+FACEIT is an optional CS2 integration used to import nickname, rank, avatar and statistics. It is not required to create a ClutchUp profile or use Valorant/Standoff 2.
 
-## Быстрый запуск Docker
+## Product flow
 
-```bash
-cp .env.example .env
-# заполните все значения replace_with_* и смените пароль PostgreSQL
-docker compose up --build
-```
+`Telegram identity → generic profile → game profile → open parties → join request → accepted membership`
 
-Nginx слушает `127.0.0.1:8080`. Публичный HTTPS reverse proxy должен направлять `clutchup.tech` на этот адрес. Backend при старте выполняет `alembic upgrade head`; ручной `create_all` не используется.
+The primary entities are `UserProfile`, `GameProfile`, `Party`, `PartyMember`, and `PartyRequest`. Legacy swipe/lobby endpoints remain temporarily available for older clients but the current frontend does not call them.
 
-Проверка:
+## Architecture
 
-```bash
-docker compose ps
-curl http://127.0.0.1:8080/health
-```
+- `backend/`: FastAPI, async SQLAlchemy, PostgreSQL, Redis, Aiogram and Alembic.
+- `frontend/`: React 18, strict TypeScript, Vite and Telegram SDK.
+- `cloudflare-worker/`: allowlisted optional FACEIT proxy.
+- `docker-compose.yml`: PostgreSQL, Redis, backend and Nginx frontend.
 
-## Переменные окружения
-
-Обязательные: `POSTGRES_PASSWORD`, `BOT_TOKEN`, `FACEIT_API_KEY`, `FACEIT_CLIENT_ID`, `FACEIT_CLIENT_SECRET`, `FACEIT_REDIRECT_URI`, `FRONTEND_URL`, `TELEGRAM_BOT_USERNAME`. Для Worker также задаются `FACEIT_PROXY_URL` и одинаковый секрет `FACEIT_PROXY_SECRET` / `PROXY_SECRET`.
-
-`AUTH_MAX_AGE_SECONDS` управляет сроком Telegram initData (по умолчанию 3600), `OAUTH_STATE_TTL_SECONDS` — одноразовым OAuth-state, `PRESENCE_TTL_SECONDS` — online TTL. Реальные секреты нельзя добавлять в Git или frontend variables.
-
-## FACEIT и Cloudflare Worker
-
-1. В FACEIT Developers создайте API key и OAuth2 client с Authorization Code + PKCE.
-2. Redirect URI должен в точности совпасть с `https://<domain>/api/faceit/oauth/callback`.
-3. В consent screen укажите HTTPS URL сайта, privacy и terms.
-4. Разверните `cloudflare-worker/worker.js`, добавьте encrypted secret `PROXY_SECRET` и запишите Worker URL/secret в backend `.env`.
-
-Worker принимает только GET к нужным Data API paths, GET userinfo и POST token exchange. Он не является open proxy и не пересылает Cloudflare/private headers.
-
-## Telegram Mini App
-
-В BotFather задайте Web App URL `https://<domain>`. Пользователь должен открывать приложение из Telegram: обычный браузер не содержит подписанного `initData`. OAuth создаётся только после нажатия кнопки; после возврата профиль обновляется на `focus`/`visibilitychange`.
-
-## Локальная разработка
+## Development
 
 ```bash
 cd frontend
 npm ci
-npm run dev
-
-cd backend
-python -m venv .venv
-# Windows: .venv\Scripts\activate
-pip install -r requirements-dev.txt
-alembic upgrade head
-uvicorn main:app --reload
-```
-
-Vite проксирует `/api` на `localhost:8000`. Для API-запросов всё равно нужен валидный Telegram header.
-
-## Проверки
-
-```bash
-cd frontend
 npm run typecheck
 npm run lint
 npm run test
 npm run build
+```
 
+Use `?demo=1` with the Vite development server for local UI preview. Demo fixtures are enabled only when `import.meta.env.DEV` is true and are never substituted in production.
+
+```bash
 cd backend
+pip install -r requirements-dev.txt
+alembic upgrade head
 ruff check .
-ruff format --check .
 pytest -q
 ```
 
-GitHub Actions выполняет те же проверки. Frontend tests покрывают loading/empty/error-facing UI, свайп, навигацию, фильтры матчей, профиль, статистику и OAuth user action. Backend tests проверяют valid/invalid/expired/future/malformed Telegram initData и критическую validation.
+The migration `20260814_03_party_product.py` is additive. It creates the party-domain tables and backfills existing `User + CS2Profile` data into generic and CS2 game profiles. It intentionally does not drop legacy tables or production data. Test migrations on a database copy before production deployment.
 
-## Миграции
+## Configuration
 
-Текущая baseline migration `20260809_01` использует idempotent DDL для безопасного обновления legacy-базы. Новые изменения создавайте через Alembic и проверяйте сначала на копии production DB:
+Required core settings include PostgreSQL, Redis, Telegram bot credentials and `FRONTEND_URL`. FACEIT variables may be left empty. If FACEIT OAuth is enabled, client id, client secret, and redirect URI must be configured together.
 
-```bash
-alembic revision --autogenerate -m "change"
-alembic upgrade head
-```
-
-## Production и troubleshooting
-
-- Cloudflare SSL/TLS: `Full (strict)` при валидном origin certificate.
-- Не публикуйте PostgreSQL/Redis; Compose не открывает их порты.
-- `401 X-Telegram-Init-Data` означает запуск вне Telegram или просроченный initData.
-- `400 OAuth session expired` означает использованный/истёкший state — начните вход снова.
-- Ошибки FACEIT 502/503 проверяйте по Worker logs, proxy secret и rate limits.
-- Если контейнер backend не стартует, сначала смотрите `docker compose logs backend`; migration завершается до запуска Uvicorn.
+`PARTY_TTL_HOURS` controls the lifetime of a party signal and defaults to six hours.

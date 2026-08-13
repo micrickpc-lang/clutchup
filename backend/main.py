@@ -11,6 +11,7 @@ from config import settings
 from database import engine
 from routers.faceit_oauth import router as faceit_oauth_router
 from routers.matching import router as matching_router
+from routers.parties import router as parties_router
 from services.bot import bot
 
 logging.basicConfig(level=settings.log_level.upper())
@@ -76,6 +77,7 @@ async def security_and_size(request: Request, call_next):
 
 
 app.include_router(matching_router, prefix="/api", tags=["matching"])
+app.include_router(parties_router, prefix="/api", tags=["parties"])
 app.include_router(faceit_oauth_router, prefix="/api", tags=["faceit-oauth"])
 
 

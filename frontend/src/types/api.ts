@@ -9,3 +9,15 @@ export type MatchItem = PlayerSummary & { matched_at: string };
 export type MatchPage = { items: MatchItem[]; page: number; page_size: number; total: number };
 export type SwipeResult = { matched: boolean; new_match: boolean; match: PlayerDetails | null };
 export type ProfileUpdate = Pick<Profile, "bio" | "primary_role" | "secondary_role" | "playstyle" | "preferred_maps" | "languages" | "microphone" | "schedule" | "country_code" | "birth_year" | "is_searching">;
+
+export type GameId = "cs2" | "valorant" | "standoff2";
+export type AppTab = "find" | "parties" | "inbox" | "profile";
+export type UserProfile = { id:number; user_id:number; display_name:string; avatar_url:string|null; birth_year:number|null; country_code:string|null; bio:string; languages:string[]; microphone:boolean|null; playstyle:string|null; preferred_schedule:string|null; faceit_connected:boolean };
+export type GameProfile = { id:number; game:GameId; nickname:string; primary_role:string|null; secondary_role:string|null; rank_label:string|null; rank_value:number|null; region:string|null; is_active:boolean };
+export type PartyMember = { user_id:number; display_name:string; avatar_url:string|null; role:"OWNER"|"MEMBER" };
+export type PartyStatus = "OPEN"|"FULL"|"CLOSED"|"EXPIRED";
+export type RequestStatus = "PENDING"|"ACCEPTED"|"REJECTED"|"CANCELLED";
+export type Party = { id:number; owner_user_id:number; game:GameId; title:string; mode:string; capacity:number; current_members:number; free_slots:number; vibe:number; language:string|null; mic_required:boolean; rank_min:number|null; rank_max:number|null; description:string; status:PartyStatus; created_at:string; expires_at:string; members:PartyMember[]; request_status:RequestStatus|null };
+export type PartyCreate = Pick<Party,"game"|"title"|"mode"|"capacity"|"vibe"|"language"|"mic_required"|"rank_min"|"rank_max"|"description">;
+export type PartyRequest = { id:number; party_id:number; party_title:string; requester_user_id:number; requester_name:string; status:RequestStatus; created_at:string };
+export type DiscoverFilters = { mode:string|null; freeSlots:number; vibe:number; language:string|null; micRequired:boolean|null };

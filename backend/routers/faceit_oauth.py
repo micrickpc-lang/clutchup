@@ -207,6 +207,10 @@ async def finish_state(redis: Any, state: str, request_id: str) -> None:
 
 @router.post("/start", response_model=OAuthStartResponse)
 async def start_oauth(request: Request, current_user: CurrentUser) -> OAuthStartResponse:
+    if settings.environment == "production" and not all(
+        (settings.faceit_client_id, settings.faceit_client_secret, settings.faceit_redirect_uri)
+    ):
+        raise HTTPException(status_code=503, detail="FACEIT integration is not configured")
     await rate_limit(request, f"oauth:{current_user.id}", 6, 600)
     request_id = uuid.uuid4().hex
     state, verifier = secrets.token_urlsafe(32), secrets.token_urlsafe(64)

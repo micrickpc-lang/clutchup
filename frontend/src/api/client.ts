@@ -1,6 +1,6 @@
 import axios from "axios";
 import { retrieveRawInitData } from "@telegram-apps/sdk";
-import type { MatchPage, PlayerDetails, Profile, ProfileUpdate, SearchPreferences, Statistics, SwipeResult } from "../types/api";
+import type { GameId, GameProfile, MatchPage, Party, PartyCreate, PartyRequest, PlayerDetails, Profile, ProfileUpdate, SearchPreferences, Statistics, SwipeResult, UserProfile } from "../types/api";
 
 function initData(): string {
   try { return retrieveRawInitData() ?? ""; } catch { return ""; }
@@ -13,6 +13,20 @@ api.interceptors.request.use((config) => {
 });
 
 export const endpoints = {
+  me: () => api.get<UserProfile>("/me").then(r=>r.data),
+  updateMe: (data: Omit<UserProfile,"id"|"user_id"|"faceit_connected">) => api.patch<UserProfile>("/me",data).then(r=>r.data),
+  gameProfiles: () => api.get<GameProfile[]>("/game-profiles").then(r=>r.data),
+  putGameProfile: (game:GameId,data:Omit<GameProfile,"id"|"game">) => api.put<GameProfile>(`/game-profiles/${game}`,data).then(r=>r.data),
+  discoverParties: (game:GameId, params:Record<string,unknown>) => api.get<{items:Party[]}>("/parties/discover",{params:{game,...params}}).then(r=>r.data.items),
+  createParty: (data:PartyCreate) => api.post<Party>("/parties",data).then(r=>r.data),
+  myParties: () => api.get<{items:Party[]}>("/parties/mine").then(r=>r.data.items),
+  party: (id:number) => api.get<Party>(`/parties/${id}`).then(r=>r.data),
+  requestParty: (id:number) => api.post<PartyRequest>(`/parties/${id}/requests`).then(r=>r.data),
+  partyRequests: () => api.get<PartyRequest[]>("/party-requests/inbox").then(r=>r.data),
+  acceptRequest: (id:number) => api.post(`/party-requests/${id}/accept`).then(r=>r.data),
+  rejectRequest: (id:number) => api.post(`/party-requests/${id}/reject`).then(r=>r.data),
+  cancelRequest: (id:number) => api.post(`/party-requests/${id}/cancel`).then(r=>r.data),
+  closeParty: (id:number) => api.post(`/parties/${id}/close`).then(r=>r.data),
   profile: (signal?: AbortSignal) => api.get<Profile | null>("/profile/me", { signal }).then((r) => r.data),
   updateProfile: (data: ProfileUpdate) => api.patch<Profile>("/profile/me", data).then((r) => r.data),
   nextCard: (signal?: AbortSignal) => api.get<PlayerDetails | null>("/cards/next", { signal }).then((r) => r.data),
