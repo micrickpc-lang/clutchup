@@ -1,0 +1,3 @@
+import type { PlayerDetails, Profile } from "../types/api";
+export const player: PlayerDetails = { user_id:2, telegram_username:"player", display_name:"Player", faceit_nickname:"m0NESY", avatar_url:null, country_code:"RU", birth_year:null, primary_role:"AWPer", secondary_role:null, playstyle:null, preferred_maps:[], languages:["ru"], microphone:true, schedule:null, bio:"", is_online:true, is_new_match:false, statistics:{elo:2500,skill_level:10,kd_ratio:1.2,adr:null,hs_percent:null,win_rate:55,matches:100,recent_form:[],map_distribution:{}} };
+export const profile: Profile = { ...player, user_id:1, faceit_nickname:"Me", is_searching:true, preferences:{elo_min:0,elo_max:4000,max_elo_difference:250,roles:[],language:null,schedule:null,online_only:false} };

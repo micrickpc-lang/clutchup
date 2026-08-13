@@ -1,0 +1,6 @@
+import { useState } from "react";
+
+export function IntentPanel({ openFilters }: { openFilters: () => void }) {
+  const [mode,setMode]=useState("COMPETITIVE"); const [size,setSize]=useState(1); const [energy,setEnergy]=useState(62);
+  return <section className="intent-panel"><div className="section-kicker"><span>02</span><div><strong>FIND YOUR PARTY</strong><small>PLAY NOW. MATCH THE VIBE.</small></div></div><div className="intent-row"><span>MODE</span><button onClick={openFilters}>MORE FILTERS →</button></div><div className="mode-tabs">{["COMPETITIVE","PREMIER","FACEIT","CHILL"].map(x=><button className={x===mode?"active":""} onClick={()=>setMode(x)} key={x}>{x}</button>)}</div><div className="intent-row"><span>PLAYERS NEEDED</span><b>+{size}</b></div><div className="size-tabs">{[1,2,3,4].map(x=><button className={x===size?"active":""} onClick={()=>setSize(x)} key={x}>+{x}</button>)}</div><div className="intent-row"><span>PLAY STYLE</span><b>{energy < 50 ? "CHILL" : "FOCUSED"}</b></div><input className="energy" type="range" min="0" max="100" value={energy} onChange={e=>setEnergy(Number(e.target.value))}/><div className="range-labels"><span>CHILL</span><span>TRYHARD</span></div></section>;
+}

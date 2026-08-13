@@ -5,59 +5,52 @@ services:
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-teamfinder}
       POSTGRES_USER: ${POSTGRES_USER:-teamfinder}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change_me}
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+    volumes: [postgres_data:/var/lib/postgresql/data]
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 5s
       timeout: 5s
       retries: 10
-
   redis:
     image: redis:7-alpine
     restart: unless-stopped
-    command: ["redis-server", "--appendonly", "yes"]
-    volumes:
-      - redis_data:/data
+    command: ["redis-server", "--appendonly", "yes", "--maxmemory-policy", "allkeys-lru"]
+    volumes: [redis_data:/data]
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
       timeout: 3s
       retries: 10
-
   backend:
     build: ./backend
     restart: unless-stopped
     environment:
-      DATABASE_URL: ${DATABASE_URL:-postgresql+asyncpg://teamfinder:change_me@db:5432/teamfinder}
-      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
-      BOT_TOKEN: ${BOT_TOKEN:-123456789:replace_with_your_bot_token}
-      FACEIT_API_KEY: ${FACEIT_API_KEY:-replace_with_your_faceit_api_key}
-      FACEIT_CLIENT_ID: ${FACEIT_CLIENT_ID:-}
-      FACEIT_CLIENT_SECRET: ${FACEIT_CLIENT_SECRET:-}
-      FACEIT_REDIRECT_URI: ${FACEIT_REDIRECT_URI:-https://clutchup.tech/api/faceit/oauth/callback}
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-teamfinder}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-teamfinder}
+      REDIS_URL: redis://redis:6379/0
+      BOT_TOKEN: ${BOT_TOKEN:?BOT_TOKEN is required}
+      FACEIT_API_KEY: ${FACEIT_API_KEY:?FACEIT_API_KEY is required}
+      FACEIT_CLIENT_ID: ${FACEIT_CLIENT_ID:?FACEIT_CLIENT_ID is required}
+      FACEIT_CLIENT_SECRET: ${FACEIT_CLIENT_SECRET:?FACEIT_CLIENT_SECRET is required}
+      FACEIT_REDIRECT_URI: ${FACEIT_REDIRECT_URI:?FACEIT_REDIRECT_URI is required}
       FACEIT_PROXY_URL: ${FACEIT_PROXY_URL:-}
       FACEIT_PROXY_SECRET: ${FACEIT_PROXY_SECRET:-}
-      FRONTEND_URL: ${FRONTEND_URL:-https://clutchup.tech}
-      AUTH_MAX_AGE_SECONDS: ${AUTH_MAX_AGE_SECONDS:-86400}
+      FRONTEND_URL: ${FRONTEND_URL:?FRONTEND_URL is required}
+      TELEGRAM_BOT_USERNAME: ${TELEGRAM_BOT_USERNAME:?TELEGRAM_BOT_USERNAME is required}
+      TELEGRAM_MINI_APP_SHORT_NAME: ${TELEGRAM_MINI_APP_SHORT_NAME:-}
+      AUTH_MAX_AGE_SECONDS: ${AUTH_MAX_AGE_SECONDS:-3600}
+      ENVIRONMENT: ${ENVIRONMENT:-production}
       LOG_LEVEL: ${LOG_LEVEL:-INFO}
     depends_on:
-      db:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-    expose:
-      - "8000"
-
+      db: { condition: service_healthy }
+      redis: { condition: service_healthy }
+    expose: ["8000"]
   frontend:
     build: ./frontend
     restart: unless-stopped
     depends_on:
-      - backend
-    ports:
-      - "127.0.0.1:8080:80"
-
+      backend: { condition: service_healthy }
+    ports: ["127.0.0.1:8080:80"]
 volumes:
   postgres_data:
   redis_data:

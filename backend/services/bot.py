@@ -7,7 +7,6 @@ from aiogram.exceptions import TelegramAPIError
 from config import settings
 from models import User
 
-
 bot = Bot(token=settings.bot_token)
 logger = logging.getLogger(__name__)
 
@@ -28,4 +27,3 @@ async def _send(user: User, other: User) -> None:
 
 async def send_match_notifications(first: User, second: User) -> None:
     await asyncio.gather(_send(first, second), _send(second, first))
-

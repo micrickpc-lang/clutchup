@@ -1,0 +1,11 @@
+export type Tab = "search" | "matches" | "profile" | "statistics" | "settings";
+export type Role = "Rifler" | "AWPer" | "IGL" | "Support" | "Lurker" | "Entry";
+export type Statistics = { elo: number; skill_level: number; kd_ratio: number | null; adr: number | null; hs_percent: number | null; win_rate: number | null; matches: number | null; recent_form: ("W" | "L")[]; map_distribution: Record<string, number> };
+export type PlayerSummary = { user_id: number; telegram_username: string | null; display_name: string; faceit_nickname: string; avatar_url: string | null; country_code: string | null; birth_year: number | null; primary_role: string; is_online: boolean; is_new_match: boolean; statistics: Statistics };
+export type PlayerDetails = PlayerSummary & { bio: string; secondary_role: string | null; playstyle: string | null; preferred_maps: string[]; languages: string[]; microphone: boolean | null; schedule: string | null };
+export type SearchPreferences = { elo_min: number; elo_max: number; max_elo_difference: number; roles: Role[]; language: string | null; schedule: string | null; online_only: boolean };
+export type Profile = PlayerDetails & { is_searching: boolean; preferences: SearchPreferences };
+export type MatchItem = PlayerSummary & { matched_at: string };
+export type MatchPage = { items: MatchItem[]; page: number; page_size: number; total: number };
+export type SwipeResult = { matched: boolean; new_match: boolean; match: PlayerDetails | null };
+export type ProfileUpdate = Pick<Profile, "bio" | "primary_role" | "secondary_role" | "playstyle" | "preferred_maps" | "languages" | "microphone" | "schedule" | "country_code" | "birth_year" | "is_searching">;
